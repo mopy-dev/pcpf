@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Project Crafts — Roblox Development Agency</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+  <style>
+    /* ═══════════════════════════════
+       VARIABLES & RESET
+    ═══════════════════════════════ */
+    :root {
+      --black:   #080808;
+      --deep:    #0d0d0d;
+      --card:    #111111;
+      --border:  #1e1e1e;
+      --green:   #39ff7e;
+      --green2:  #00c957;
+      --orange:  #ff6b1a;
+      --orange2: #ff9a3c;
+      --white:   #f0f0f0;
+      --muted:   #666;
+      --glow-g:  0 0 30px rgba(57,255,126,0.35);
+      --glow-o:  0 0 30px rgba(255,107,26,0.35);
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-body:    'DM Sans', sans-serif;
+      --font-mono:    'Space Mono', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      cursor: none;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+
+    /* ═══════════════════════════════
+       CUSTOM CURSOR
+    ═══════════════════════════════ */
+    #cursor-dot {
+      width: 8px; height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%,-50%);
+      transition: transform 0.05s, background 0.2s;
+    }
+    #cursor-ring {
+      width: 36px; height: 36px;
+      border: 1.5px solid rgba(57,255,126,0.5);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%,-50%);
+      transition: transform 0.12s ease, width 0.2s, height 0.2s, border-color 0.2s;
+    }
+    body.hovering #cursor-ring {
+      width: 56px; height: 56px;
+      border-color: rgba(255,107,26,0.7);
+    }
+    body.hovering #cursor-dot { background: var(--orange); }
+
+    /* ═══════════════════════════════
+       NOISE OVERLAY
+    ═══════════════════════════════ */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 9997;
+    }
+
+    /* ═══════════════════════════════
+       NAVBAR
+    ═══════════════════════════════ */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      z-index: 500;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 60px;
+      background: rgba(8,8,8,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      transition: padding 0.3s;
+    }
+    nav.scrolled { padding: 14px 60px; }
+    .nav-logo {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .nav-logo img { height: 44px; width: auto; border-radius: 6px; }
+    .nav-logo-text {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--green), var(--orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .nav-links {
+      display: flex; gap: 36px; list-style: none;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .nav-links a {
+      color: var(--muted);
+      transition: color 0.2s;
+      position: relative;
+    }
+    .nav-links a::after {
+      content: '';
+      position: absolute; bottom: -4px; left: 0;
+      width: 0; height: 1px;
+      background: var(--green);
+      transition: width 0.25s;
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-links a:hover::after { width: 100%; }
+    .nav-cta {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 10px 22px;
+      border: 1px solid var(--green);
+      color: var(--green);
+      border-radius: 3px;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+    .nav-cta:hover {
+      background: var(--green);
+      color: var(--black);
+      box-shadow: var(--glow-g);
+    }
+
+    /* ═══════════════════════════════
+       HERO
+    ═══════════════════════════════ */
+    #hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      position: relative;
+      padding: 120px 40px 80px;
+      overflow: hidden;
+    }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(57,255,126,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(57,255,126,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: gridPulse 8s ease-in-out infinite;
+    }
+    @keyframes gridPulse {
+      0%,100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+    .hero-glow-left {
+      position: absolute; left: -200px; top: 20%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(57,255,126,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      animation: floatGlow 6s ease-in-out infinite;
+    }
+    .hero-glow-right {
+      position: absolute; right: -200px; bottom: 20%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(255,107,26,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      animation: floatGlow 6s ease-in-out infinite reverse;
+    }
+    @keyframes floatGlow {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-30px); }
+    }
+    .hero-badge {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--green);
+      border: 1px solid rgba(57,255,126,0.3);
+      padding: 7px 18px;
+      border-radius: 100px;
+      margin-bottom: 32px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.2s forwards;
+    }
+    .hero-logo-img {
+      width: 200px; height: auto;
+      margin: 0 auto 28px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.4s forwards;
+      filter: drop-shadow(0 0 30px rgba(57,255,126,0.3));
+    }
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(4rem, 10vw, 9rem);
+      line-height: 0.9;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.5s forwards;
+    }
+    .hero-title .line-green {
+      background: linear-gradient(90deg, var(--green), var(--green2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: block;
+    }
+    .hero-title .line-orange {
+      background: linear-gradient(90deg, var(--orange), var(--orange2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: block;
+    }
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 480px;
+      line-height: 1.8;
+      margin: 28px auto 0;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.7s forwards;
+    }
+    .hero-ctas {
+      display: flex; gap: 16px;
+      justify-content: center;
+      margin-top: 44px;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.9s forwards;
+    }
+    .btn-primary {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 14px 34px;
+      background: var(--green);
+      color: var(--black);
+      border: none;
+      border-radius: 3px;
+      cursor: none;
+      font-weight: 700;
+      transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .btn-primary:hover {
+      box-shadow: var(--glow-g);
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 14px 34px;
+      background: transparent;
+      color: var(--orange);
+      border: 1px solid var(--orange);
+      border-radius: 3px;
+      cursor: none;
+      transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+    }
+    .btn-secondary:hover {
+      background: rgba(255,107,26,0.1);
+      box-shadow: var(--glow-o);
+      transform: translateY(-2px);
+    }
+    .hero-scroll {
+      position: absolute; bottom: 36px; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column;
+      align-items: center; gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0;
+      animation: fadeIn 1s 1.2s forwards;
+    }
+    .scroll-line {
+      width: 1px; height: 40px;
+      background: linear-gradient(to bottom, var(--green), transparent);
+      animation: scrollLine 2s ease-in-out infinite;
+    }
+    @keyframes scrollLine {
+      0% { opacity: 1; transform: scaleY(1); transform-origin: top; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; transform: scaleY(1); transform-origin: top; }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* 3D tilt container */
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      transform-style: preserve-3d;
+      transition: transform 0.1s ease;
+    }
+
+    /* ═══════════════════════════════
+       STATS / ABOUT STRIP
+    ═══════════════════════════════ */
+    #stats {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 40px 60px;
+      display: flex; justify-content: center;
+      gap: 80px;
+      background: var(--deep);
+      position: relative;
+      overflow: hidden;
+    }
+    #stats::before {
+      content: '';
+      position: absolute; left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: linear-gradient(to bottom, var(--green), var(--orange));
+    }
+    .stat-item {
+      text-align: center;
+    }
+    .stat-number {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--green), var(--orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .stat-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* ═══════════════════════════════
+       SECTION COMMON
+    ═══════════════════════════════ */
+    section { padding: 100px 60px; }
+    .section-label {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 14px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      letter-spacing: 2px;
+      line-height: 1;
+      text-transform: uppercase;
+      color: var(--white);
+    }
+    .section-divider {
+      width: 60px; height: 2px;
+      background: linear-gradient(90deg, var(--orange), transparent);
+      margin: 20px 0 48px;
+    }
+
+    /* ═══════════════════════════════
+       ABOUT
+    ═══════════════════════════════ */
+    #about {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .about-text p {
+      color: #aaa;
+      line-height: 1.9;
+      font-size: 0.97rem;
+      margin-bottom: 18px;
+    }
+    .about-tags {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-top: 32px;
+    }
+    .tag {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 3px;
+      background: rgba(57,255,126,0.07);
+      border: 1px solid rgba(57,255,126,0.2);
+      color: var(--green);
+    }
+    .about-visual {
+      position: relative;
+    }
+    .about-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 36px;
+      position: relative;
+      overflow: hidden;
+      transform-style: preserve-3d;
+      transition: transform 0.4s ease, box-shadow 0.4s;
+    }
+    .about-card:hover {
+      transform: rotateY(-4deg) rotateX(2deg) translateZ(8px);
+      box-shadow: 20px 20px 60px rgba(0,0,0,0.5), var(--glow-g);
+    }
+    .about-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--green), var(--orange));
+    }
+    .about-card-icon {
+      font-size: 2.4rem;
+      margin-bottom: 20px;
+    }
+    .about-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      background: linear-gradient(90deg, var(--white), #888);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .about-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
+
+    /* ═══════════════════════════════
+       PORTFOLIO CATEGORIES
+    ═══════════════════════════════ */
+    #portfolio { max-width: 1300px; margin: 0 auto; }
+    .portfolio-header { text-align: center; margin-bottom: 60px; }
+    .portfolio-header .section-divider { margin: 20px auto 0; }
+
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    /* Featured first item spans 2 cols */
+    .cat-card:first-child {
+      grid-column: span 1;
+    }
+
+    .cat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 40px 32px;
+      cursor: none;
+      position: relative;
+      overflow: hidden;
+      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+      display: flex; flex-direction: column;
+      transform-style: preserve-3d;
+    }
+    .cat-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(57,255,126,0.06) 0%, transparent 60%);
+      pointer-events: none;
+      transition: opacity 0.3s;
+      opacity: 0;
+    }
+    .cat-card:hover::after { opacity: 1; }
+    .cat-card:hover {
+      border-color: rgba(57,255,126,0.4);
+      transform: translateY(-4px) rotateX(1deg);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .cat-card-accent {
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--green), var(--orange));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s ease;
+    }
+    .cat-card:hover .cat-card-accent { transform: scaleX(1); }
+    .cat-icon {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      display: inline-block;
+      transition: transform 0.3s;
+    }
+    .cat-card:hover .cat-icon { transform: scale(1.2) rotate(-5deg); }
+    .cat-number {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 3px;
+      color: var(--orange);
+      margin-bottom: 8px;
+    }
+    .cat-name {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      color: var(--white);
+    }
+    .cat-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.7;
+      flex: 1;
+    }
+    .cat-arrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-top: 28px;
+      transition: gap 0.2s;
+    }
+    .cat-card:hover .cat-arrow { gap: 14px; }
+
+    /* ═══════════════════════════════
+       MODAL
+    ═══════════════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(12px);
+      z-index: 800;
+      display: flex; align-items: center; justify-content: center;
+      padding: 40px 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal {
+      background: var(--deep);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      width: 100%; max-width: 900px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      transform: translateY(30px) scale(0.97);
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .modal-overlay.open .modal {
+      transform: translateY(0) scale(1);
+    }
+    .modal::-webkit-scrollbar { width: 4px; }
+    .modal::-webkit-scrollbar-track { background: transparent; }
+    .modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .modal-header {
+      padding: 36px 40px 24px;
+      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0;
+      background: var(--deep);
+      z-index: 2;
+      display: flex; align-items: flex-start; justify-content: space-between;
+    }
+    .modal-header-left { display: flex; align-items: center; gap: 20px; }
+    .modal-header-icon { font-size: 2.4rem; }
+    .modal-header h2 {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--green), var(--orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .modal-header p {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    .modal-close {
+      background: none; border: none; cursor: none;
+      color: var(--muted);
+      font-size: 1.4rem;
+      padding: 8px;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .modal-close:hover { color: var(--white); background: var(--border); }
+    .modal-body { padding: 36px 40px; }
+
+    /* Modal sections */
+    .modal-section { margin-bottom: 40px; }
+    .modal-section-title {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 18px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* Image grid */
+    .modal-images {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .modal-img-item {
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      aspect-ratio: 16/9;
+      background: var(--card);
+      position: relative;
+      cursor: none;
+    }
+    .modal-img-item img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s;
+    }
+    .modal-img-item:hover img { transform: scale(1.05); }
+    .modal-img-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--border);
+      font-size: 1.5rem;
+    }
+
+    /* Video embeds */
+    .modal-videos { display: flex; flex-direction: column; gap: 16px; }
+    .modal-video-item {
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      aspect-ratio: 16/9;
+      background: #000;
+    }
+    .modal-video-item iframe {
+      width: 100%; height: 100%;
+      border: none;
+    }
+
+    /* Links */
+    .modal-links { display: flex; flex-wrap: wrap; gap: 10px; }
+    .modal-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 10px 18px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      color: var(--white);
+      background: var(--card);
+      transition: border-color 0.2s, color 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+    }
+    .modal-link:hover {
+      border-color: var(--green);
+      color: var(--green);
+      box-shadow: var(--glow-g);
+    }
+    .modal-link .link-icon { font-size: 1rem; }
+
+    /* Empty state */
+    .modal-empty {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+    }
+    .modal-empty .empty-icon { font-size: 2rem; margin-bottom: 12px; }
+
+    /* ═══════════════════════════════
+       EDIT MODE (inline admin)
+    ═══════════════════════════════ */
+    #edit-toggle {
+      position: fixed; bottom: 28px; right: 28px;
+      z-index: 600;
+      background: var(--orange);
+      color: var(--black);
+      border: none;
+      border-radius: 50px;
+      padding: 12px 24px;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+      cursor: none;
+      display: flex; align-items: center; gap: 8px;
+      box-shadow: var(--glow-o);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    #edit-toggle:hover { transform: scale(1.04); }
+    #edit-toggle .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--black);
+      transition: background 0.2s;
+    }
+    body.edit-mode #edit-toggle { background: var(--green); box-shadow: var(--glow-g); }
+    body.edit-mode #edit-toggle .dot { background: var(--black); animation: blink 1s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* Edit panel in modal */
+    .edit-panel {
+      display: none;
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 1px dashed var(--green);
+    }
+    body.edit-mode .edit-panel { display: block; }
+    .edit-panel-title {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 20px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .edit-panel-title::before {
+      content: '✏️';
+    }
+    .edit-row {
+      display: flex; gap: 8px; margin-bottom: 10px;
+    }
+    .edit-input {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 14px;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .edit-input:focus { border-color: var(--green); }
+    .edit-input::placeholder { color: var(--muted); }
+    .edit-select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 14px;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      outline: none;
+      cursor: none;
+    }
+    .edit-btn {
+      font-family: var(--font-mono);
+      font-size: 0.65rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 10px 18px;
+      border-radius: 4px;
+      border: none;
+      cursor: none;
+      font-weight: 700;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .edit-btn:hover { opacity: 0.85; transform: scale(1.02); }
+    .edit-btn-add { background: var(--green); color: var(--black); }
+    .edit-btn-danger { background: #ff4444; color: #fff; font-size: 0.6rem; padding: 6px 10px; }
+    .edit-saved-notice {
+      font-family: var(--font-mono);
+      font-size: 0.62rem;
+      letter-spacing: 2px;
+      color: var(--green);
+      margin-top: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .edit-saved-notice.show { opacity: 1; }
+
+    /* Delete buttons on items */
+    .item-delete-btn {
+      display: none;
+      position: absolute; top: 6px; right: 6px;
+      background: rgba(255,0,0,0.8);
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      font-size: 0.6rem;
+      padding: 4px 8px;
+      cursor: none;
+      z-index: 5;
+      font-family: var(--font-mono);
+    }
+    body.edit-mode .item-delete-btn { display: block; }
+    .modal-link { position: relative; }
+
+    /* ═══════════════════════════════
+       CONTACT
+    ═══════════════════════════════ */
+    #contact { max-width: 1100px; margin: 0 auto; }
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.5fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .contact-info h3 {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .contact-info p {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.8;
+      margin-bottom: 32px;
+    }
+    .contact-item {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+    }
+    .contact-item-icon {
+      width: 38px; height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      background: var(--card);
+      flex-shrink: 0;
+    }
+    .contact-item a { color: var(--muted); transition: color 0.2s; }
+    .contact-item a:hover { color: var(--green); }
+
+    /* Form */
+    .contact-form { display: flex; flex-direction: column; gap: 16px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-field { display: flex; flex-direction: column; gap: 7px; }
+    .form-label {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .form-input {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 13px 16px;
+      color: var(--white);
+      font-family: var(--font-body);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(57,255,126,0.08);
+    }
+    .form-input::placeholder { color: #333; }
+    textarea.form-input { resize: vertical; min-height: 130px; }
+    .form-submit {
+      align-self: flex-start;
+    }
+    .form-success {
+      display: none;
+      padding: 14px 20px;
+      background: rgba(57,255,126,0.1);
+      border: 1px solid rgba(57,255,126,0.3);
+      border-radius: 5px;
+      color: var(--green);
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      letter-spacing: 1.5px;
+    }
+
+    /* ═══════════════════════════════
+       FOOTER
+    ═══════════════════════════════ */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 50px 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--deep);
+    }
+    .footer-left {
+      display: flex; align-items: center; gap: 14px;
+    }
+    .footer-left img { height: 36px; border-radius: 4px; }
+    .footer-brand {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--green), var(--orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .footer-copy {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+    .footer-links {
+      display: flex; gap: 24px;
+      list-style: none;
+    }
+    .footer-links a {
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--green); }
+
+    /* ═══════════════════════════════
+       LIGHTBOX
+    ═══════════════════════════════ */
+    #lightbox {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.95);
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    #lightbox.open { opacity: 1; pointer-events: all; }
+    #lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 6px; }
+    #lightbox-close {
+      position: absolute; top: 24px; right: 24px;
+      background: none; border: none; color: #fff;
+      font-size: 2rem; cursor: none;
+    }
+
+    /* ═══════════════════════════════
+       SCROLL REVEAL
+    ═══════════════════════════════ */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ═══════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════ */
+    @media (max-width: 960px) {
+      nav { padding: 18px 24px; }
+      .nav-links { display: none; }
+      section { padding: 70px 24px; }
+      #about { grid-template-columns: 1fr; gap: 40px; }
+      .categories-grid { grid-template-columns: 1fr 1fr; }
+      .contact-grid { grid-template-columns: 1fr; gap: 48px; }
+      footer { flex-direction: column; gap: 24px; text-align: center; }
+      #stats { gap: 40px; padding: 32px 24px; flex-wrap: wrap; }
+    }
+    @media (max-width: 600px) {
+      .categories-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .modal-body { padding: 24px 20px; }
+      .modal-header { padding: 24px 20px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<!-- Lightbox -->
+<div id="lightbox">
+  <button id="lightbox-close">✕</button>
+  <img id="lightbox-img" src="" alt=""/>
+</div>
+
+<!-- ══════════════ NAVBAR ══════════════ -->
+<nav id="navbar">
+  <div class="nav-logo">
+    <img src="https://i.imgur.com/placeholder.png" id="nav-logo-img" alt="Project Crafts Logo"/>
+    <span class="nav-logo-text">Project Crafts</span>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#portfolio">Portfolio</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Hire Us</a>
+</nav>
+
+<!-- ══════════════ HERO ══════════════ -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow-left"></div>
+  <div class="hero-glow-right"></div>
+  <div class="hero-inner" id="hero-inner">
+    <div class="hero-badge">Roblox Development Agency</div>
+    <img class="hero-logo-img" id="hero-logo" src="https://i.imgur.com/placeholder.png" alt="Project Crafts"/>
+    <h1 class="hero-title">
+      <span class="line-green">Project</span>
+      <span class="line-orange">Crafts</span>
+    </h1>
+    <p class="hero-sub">Professional Roblox development — from concept to launch. We craft worlds, sounds, and experiences that players remember.</p>
+    <div class="hero-ctas">
+      <a href="#portfolio" class="btn-primary">View Portfolio</a>
+      <a href="#contact" class="btn-secondary">Get in Touch</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- ══════════════ STATS ══════════════ -->
+<div id="stats">
+  <div class="stat-item reveal">
+    <div class="stat-number" data-count="50">0</div>
+    <div class="stat-label">Projects Done</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="stat-number" data-count="9">0</div>
+    <div class="stat-label">Specializations</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="stat-number" data-count="100">0</div>
+    <div class="stat-label">Client Satisfaction</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="stat-number" data-count="3">0</div>
+    <div class="stat-label">Years Active</div>
+  </div>
+</div>
+
+<!-- ══════════════ ABOUT ══════════════ -->
+<section>
+  <div id="about">
+    <div class="about-text reveal">
+      <div class="section-label">Who We Are</div>
+      <h2 class="section-title">Built by<br/>Creators,<br/>for Creators</h2>
+      <div class="section-divider"></div>
+      <p>Project Crafts is a full-service Roblox development agency specializing in delivering high-quality, immersive experiences. Our team of dedicated professionals covers every discipline — from stunning 3D models to cinematic sound design.</p>
+      <p>We believe every Roblox game deserves the same level of craft and attention you'd find in AAA development studios. Whether you're launching your first experience or scaling an existing one, we're your creative partners.</p>
+      <div class="about-tags">
+        <span class="tag">Modeling</span>
+        <span class="tag">Building</span>
+        <span class="tag">Animation</span>
+        <span class="tag">UI Design</span>
+        <span class="tag">SFX</span>
+        <span class="tag">VFX</span>
+        <span class="tag">Music</span>
+        <span class="tag">Voice Acting</span>
+      </div>
+    </div>
+    <div class="about-visual reveal">
+      <div class="about-card" id="about-tilt-card">
+        <div class="about-card-icon">🎮</div>
+        <h3>Our Philosophy</h3>
+        <p>Every pixel, polygon, and sound wave matters. We combine technical excellence with artistic vision to produce Roblox content that stands apart from the crowd. No templates, no shortcuts — just genuine craft.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ PORTFOLIO ══════════════ -->
+<section>
+  <div id="portfolio">
+    <div class="portfolio-header reveal">
+      <div class="section-label">Our Work</div>
+      <h2 class="section-title">Portfolio</h2>
+      <div class="section-divider"></div>
+      <p style="color:var(--muted);max-width:500px;margin:0 auto;font-size:0.9rem;line-height:1.8;">Click any category to explore our work. Each piece is crafted with precision and passion.</p>
+    </div>
+
+    <div class="categories-grid" id="cat-grid">
+      <!-- Cards generated by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ CONTACT ══════════════ -->
+<section>
+  <div id="contact">
+    <div class="reveal">
+      <div class="section-label">Get in Touch</div>
+      <h2 class="section-title">Let's Build<br/>Something</h2>
+      <div class="section-divider"></div>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <h3>Start a Project</h3>
+        <p>Ready to bring your Roblox vision to life? Reach out and let's talk about what we can build together. We respond within 24 hours.</p>
+        <div class="contact-item">
+          <div class="contact-item-icon">💬</div>
+          <div><a href="#" id="contact-discord">Discord — coming soon</a></div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-item-icon">🐦</div>
+          <div><a href="#" id="contact-twitter">Twitter / X — coming soon</a></div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-item-icon">🎮</div>
+          <div><a href="#" id="contact-roblox">Roblox Profile — coming soon</a></div>
+        </div>
+      </div>
+      <div class="reveal">
+        <form class="contact-form" id="contact-form">
+          <div class="form-row">
+            <div class="form-field">
+              <label class="form-label">Your Name</label>
+              <input type="text" class="form-input" placeholder="John Doe" required/>
+            </div>
+            <div class="form-field">
+              <label class="form-label">Discord / Username</label>
+              <input type="text" class="form-input" placeholder="username#0000"/>
+            </div>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" placeholder="hello@example.com" required/>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Project Type</label>
+            <select class="form-input">
+              <option value="">Select a service...</option>
+              <option>3D Modeling</option>
+              <option>Building</option>
+              <option>Animation</option>
+              <option>UI Design</option>
+              <option>Sound Effects</option>
+              <option>Visual Effects</option>
+              <option>Music</option>
+              <option>Voice Acting</option>
+              <option>Full Package</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label class="form-label">Tell Us About Your Project</label>
+            <textarea class="form-input" placeholder="Describe your project, budget, timeline..."></textarea>
+          </div>
+          <div class="form-success" id="form-success">✓ Message sent! We'll get back to you shortly.</div>
+          <button type="submit" class="btn-primary form-submit">Send Message →</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer>
+  <div class="footer-left">
+    <img id="footer-logo" src="https://i.imgur.com/placeholder.png" alt="Project Crafts"/>
+    <div>
+      <div class="footer-brand">Project Crafts</div>
+      <div class="footer-copy">© 2025 Project Crafts. All rights reserved.</div>
+    </div>
+  </div>
+  <ul class="footer-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#portfolio">Portfolio</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</footer>
+
+<!-- Edit mode toggle -->
+<button id="edit-toggle" onclick="toggleEditMode()">
+  <span class="dot"></span>
+  Edit Mode
+</button>
+
+<!-- ══════════════ MODALS ══════════════ -->
+<div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-header-icon" id="modal-icon"></div>
+        <div>
+          <h2 id="modal-title"></h2>
+          <p id="modal-subtitle"></p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body">
+      <!-- Dynamically populated -->
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════
+   DATA — Edit this object to populate content
+   ═══════════════════════════════════════ */
+const LOGO_URL = "https://i.imgur.com/placeholder.png"; // ← Replace with your logo URL
+
+// Contact info — edit these directly
+const CONTACT = {
+  discord: { label: "discord.gg/yourlink", url: "https://discord.gg/yourlink" },
+  twitter: { label: "@ProjectCrafts", url: "https://twitter.com/yourhandle" },
+  roblox:  { label: "Project Crafts on Roblox", url: "https://www.roblox.com/groups/yourgroup" },
+};
+
+// Portfolio data — each category has images, videos, links
+// images: array of { url, caption }
+// videos: array of { url, title } — YouTube embed URLs
+// links: array of { label, icon, url }
+let PORTFOLIO = {
+  modeling: {
+    name: "3D Modeling",
+    icon: "🧊",
+    desc: "High-fidelity 3D models — characters, props, weapons, and environments built for Roblox.",
+    images: [],
+    videos: [],
+    links: [],
+  },
+  building: {
+    name: "Building",
+    icon: "🏗️",
+    desc: "Detailed world-building and map design. From lobby maps to open worlds.",
+    images: [],
+    videos: [],
+    links: [],
+  },
+  animating: {
+    name: "Animating",
+    icon: "🎬",
+    desc: "Smooth, expressive character and object animations that bring games to life.",
+    images: [],
+    videos: [],
+    links: [],
+  },
+  ui: {
+    name: "UI Design",
+    icon: "🖥️",
+    desc: "Clean, immersive user interfaces — HUDs, menus, and custom Roblox GUIs.",
+    images: [],
+    videos: [],
+    links: [],
+  },
+  sfx: {
+    name: "Sound Effects",
+    icon: "🔊",
+    desc: "Custom SFX, ambience, and audio design tailored for Roblox gameplay.",
+    images: [],
+    videos: [],
+    links: [],
+  },
+  vfx: {
+    name: "Visual Effects",
+    icon: "✨",
+    desc: "Particle systems, explosions, weather effects, and cinematic VFX.",
+    images: [],
+    videos: [],
+    links: [],
+  },
+  music: {
+    name: "Music",
+    icon: "🎵",
+    desc: "Original game soundtracks, background scores, and looping music compositions.",
+    images: [],
+    videos: [],
+    links: [],
+  },
+  voiceacting: {
+    name: "Voice Acting",
+    icon: "🎙️",
+    desc: "Professional voice acting for NPCs, cutscenes, and interactive narratives.",
+    images: [],
+    videos: [],
+    links: [],
+  },
+};
+
+/* ═════════════════════════════
+   SAVE/LOAD from localStorage
+   ═════════════════════════════ */
+function saveData() {
+  localStorage.setItem('pc_portfolio', JSON.stringify(PORTFOLIO));
+  localStorage.setItem('pc_logo', LOGO_URL);
+}
+function loadData() {
+  const saved = localStorage.getItem('pc_portfolio');
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      // Merge to preserve structure for new keys
+      for (const k in parsed) { if (PORTFOLIO[k]) Object.assign(PORTFOLIO[k], parsed[k]); }
+    } catch(e) {}
+  }
+}
+loadData();
+
+/* ═════════════════════════════
+   SET LOGO
+   ═════════════════════════════ */
+function applyLogo(url) {
+  document.getElementById('nav-logo-img').src = url;
+  document.getElementById('hero-logo').src = url;
+  document.getElementById('footer-logo').src = url;
+}
+const savedLogo = localStorage.getItem('pc_logo');
+if (savedLogo && savedLogo !== 'https://i.imgur.com/placeholder.png') applyLogo(savedLogo);
+
+/* ═════════════════════════════
+   APPLY CONTACT
+   ═════════════════════════════ */
+function applyContact() {
+  const d = document.getElementById('contact-discord');
+  const t = document.getElementById('contact-twitter');
+  const r = document.getElementById('contact-roblox');
+  if (CONTACT.discord.url !== '#') { d.href = CONTACT.discord.url; d.textContent = 'Discord — ' + CONTACT.discord.label; }
+  if (CONTACT.twitter.url !== '#')  { t.href = CONTACT.twitter.url;  t.textContent = 'Twitter / X — ' + CONTACT.twitter.label; }
+  if (CONTACT.roblox.url !== '#')   { r.href = CONTACT.roblox.url;   r.textContent = 'Roblox — ' + CONTACT.roblox.label; }
+}
+applyContact();
+
+/* ═════════════════════════════
+   CUSTOM CURSOR
+   ═════════════════════════════ */
+const dot = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animateCursor() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(animateCursor);
+}
+animateCursor();
+document.querySelectorAll('a, button, .cat-card, .modal-img-item, .modal-link').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+});
+
+/* ═════════════════════════════
+   NAVBAR SCROLL
+   ═════════════════════════════ */
+window.addEventListener('scroll', () => {
+  document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 60);
+});
+
+/* ═════════════════════════════
+   HERO 3D TILT
+   ═════════════════════════════ */
+const heroInner = document.getElementById('hero-inner');
+document.getElementById('hero').addEventListener('mousemove', e => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const rx2 = ((e.clientY - cy) / cy) * -6;
+  const ry2 = ((e.clientX - cx) / cx) * 6;
+  heroInner.style.transform = `rotateX(${rx2}deg) rotateY(${ry2}deg)`;
+});
+document.getElementById('hero').addEventListener('mouseleave', () => {
+  heroInner.style.transform = '';
+});
+
+/* ═════════════════════════════
+   ABOUT CARD TILT
+   ═════════════════════════════ */
+const aboutCard = document.getElementById('about-tilt-card');
+if (aboutCard) {
+  aboutCard.addEventListener('mousemove', e => {
+    const rect = aboutCard.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const rx2 = ((y / rect.height) - 0.5) * -12;
+    const ry2 = ((x / rect.width) - 0.5) * 12;
+    aboutCard.style.transform = `rotateX(${rx2}deg) rotateY(${ry2}deg) translateZ(10px)`;
+  });
+  aboutCard.addEventListener('mouseleave', () => {
+    aboutCard.style.transform = '';
+  });
+}
+
+/* ═════════════════════════════
+   CAT CARD RADIAL GLOW
+   ═════════════════════════════ */
+document.addEventListener('mousemove', e => {
+  document.querySelectorAll('.cat-card').forEach(card => {
+    const rect = card.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1) + '%';
+    const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1) + '%';
+    card.style.setProperty('--mx', x);
+    card.style.setProperty('--my', y);
+  });
+});
+
+/* ═════════════════════════════
+   SCROLL REVEAL
+   ═════════════════════════════ */
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      // Count-up for stats
+      const num = entry.target.querySelector('[data-count]');
+      if (num) countUp(num);
+    }
+  });
+}, { threshold: 0.15 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+/* ═════════════════════════════
+   COUNT-UP
+   ═════════════════════════════ */
+function countUp(el) {
+  const target = parseInt(el.dataset.count);
+  const suffix = el.dataset.count === '100' ? '%' : '+';
+  let current = 0;
+  const duration = 1200;
+  const step = Math.ceil(target / (duration / 16));
+  const timer = setInterval(() => {
+    current = Math.min(current + step, target);
+    el.textContent = current + suffix;
+    if (current >= target) clearInterval(timer);
+  }, 16);
+}
+
+/* ═════════════════════════════
+   BUILD CATEGORY GRID
+   ═════════════════════════════ */
+function buildGrid() {
+  const grid = document.getElementById('cat-grid');
+  grid.innerHTML = '';
+  const keys = Object.keys(PORTFOLIO);
+  keys.forEach((key, i) => {
+    const cat = PORTFOLIO[key];
+    const card = document.createElement('div');
+    card.className = 'cat-card reveal';
+    card.innerHTML = `
+      <div class="cat-card-accent"></div>
+      <span class="cat-icon">${cat.icon}</span>
+      <div class="cat-number">0${i + 1}</div>
+      <div class="cat-name">${cat.name}</div>
+      <div class="cat-desc">${cat.desc}</div>
+      <div class="cat-arrow">Explore Work →</div>
+    `;
+    card.addEventListener('click', () => openModal(key));
+    grid.appendChild(card);
+    observer.observe(card);
+  });
+}
+buildGrid();
+
+/* ═════════════════════════════
+   MODAL
+   ═════════════════════════════ */
+let currentKey = null;
+
+function openModal(key) {
+  currentKey = key;
+  const cat = PORTFOLIO[key];
+  document.getElementById('modal-icon').textContent = cat.icon;
+  document.getElementById('modal-title').textContent = cat.name;
+  document.getElementById('modal-subtitle').textContent = cat.desc;
+  renderModalBody(key);
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-overlay')) closeModalBtn();
+}
+function closeModalBtn() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  currentKey = null;
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModalBtn();
+});
+
+/* ─────────────────────────────────────────
+   toEmbedUrl — safely convert any YouTube
+   URL format to an embed URL
+───────────────────────────────────────── */
+function toEmbedUrl(url) {
+  try {
+    const u = new URL(url.trim());
+    // Standard watch URL: youtube.com/watch?v=ID
+    if (u.hostname.includes('youtube.com') && u.searchParams.get('v')) {
+      return 'https://www.youtube.com/embed/' + u.searchParams.get('v');
+    }
+    // Short URL: youtu.be/ID
+    if (u.hostname === 'youtu.be') {
+      const id = u.pathname.replace('/', '');
+      return 'https://www.youtube.com/embed/' + id;
+    }
+    // Already an embed URL — return as-is
+    if (url.includes('/embed/')) return url;
+  } catch(e) {}
+  return url;
+}
+
+/* ─────────────────────────────────────────
+   renderModalBody — fully DOM-based,
+   no URLs ever injected into HTML strings
+───────────────────────────────────────── */
+function renderModalBody(key) {
+  const cat = PORTFOLIO[key];
+  const body = document.getElementById('modal-body');
+  body.innerHTML = ''; // clear
+
+  /* ── IMAGES ── */
+  const imgSection = makeSection('📸 Images');
+  if (cat.images.length === 0) {
+    imgSection.appendChild(makeEmpty('🖼️', 'No images yet — add some in edit mode!'));
+  } else {
+    const grid = document.createElement('div');
+    grid.className = 'modal-images';
+    cat.images.forEach((img, idx) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'modal-img-item';
+      wrap.style.cursor = 'none';
+
+      const el = document.createElement('img');
+      el.src = img.url;           // ← set as property, never injected
+      el.alt = img.caption || '';
+      el.loading = 'lazy';
+      el.onerror = () => {
+        wrap.innerHTML = '<div class="modal-img-placeholder" style="color:#555;font-size:0.75rem;padding:12px;text-align:center">⚠️ Could not load image<br><small style="word-break:break-all;color:#444">' + img.url + '</small></div>';
+      };
+      wrap.appendChild(el);
+      wrap.addEventListener('click', () => openLightbox(img.url));
+
+      const del = makeDeleteBtn(() => deleteItem(key, 'images', idx));
+      del.addEventListener('click', e => e.stopPropagation());
+      wrap.appendChild(del);
+      grid.appendChild(wrap);
+    });
+    imgSection.appendChild(grid);
+  }
+  body.appendChild(imgSection);
+
+  /* ── VIDEOS ── */
+  const vidSection = makeSection('🎬 Videos');
+  if (cat.videos.length === 0) {
+    vidSection.appendChild(makeEmpty('▶️', 'No videos yet — add YouTube links in edit mode!'));
+  } else {
+    const list = document.createElement('div');
+    list.className = 'modal-videos';
+    cat.videos.forEach((vid, idx) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'modal-video-item';
+      wrap.style.position = 'relative';
+
+      const frame = document.createElement('iframe');
+      frame.src = toEmbedUrl(vid.url);  // ← set as property
+      frame.allowFullscreen = true;
+      frame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
+      wrap.appendChild(frame);
+
+      const del = makeDeleteBtn(() => deleteItem(key, 'videos', idx));
+      wrap.appendChild(del);
+      list.appendChild(wrap);
+    });
+    vidSection.appendChild(list);
+  }
+  body.appendChild(vidSection);
+
+  /* ── LINKS ── */
+  const lnkSection = makeSection('🔗 Links');
+  if (cat.links.length === 0) {
+    lnkSection.appendChild(makeEmpty('🌐', 'No links yet — add socials or Roblox links in edit mode!'));
+  } else {
+    const row = document.createElement('div');
+    row.className = 'modal-links';
+    cat.links.forEach((link, idx) => {
+      const a = document.createElement('a');
+      a.href = link.url;            // ← set as property
+      a.target = '_blank';
+      a.rel = 'noopener noreferrer';
+      a.className = 'modal-link';
+      a.style.position = 'relative';
+
+      const ico = document.createElement('span');
+      ico.className = 'link-icon';
+      ico.textContent = link.icon || '🔗';
+      a.appendChild(ico);
+      a.appendChild(document.createTextNode(link.label));
+
+      const del = makeDeleteBtn(() => deleteItem(key, 'links', idx));
+      del.style.top = '2px';
+      del.style.right = '2px';
+      del.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); });
+      a.appendChild(del);
+      row.appendChild(a);
+    });
+    lnkSection.appendChild(row);
+  }
+  body.appendChild(lnkSection);
+
+  /* ── EDIT PANEL ── */
+  const panel = document.createElement('div');
+  panel.className = 'edit-panel';
+  panel.innerHTML = '<div class="edit-panel-title">Admin — Edit Mode Active</div>';
+
+  // Image adder
+  panel.appendChild(makeAdder(
+    'Add Image URL',
+    [
+      { id: 'ep-img-url', placeholder: 'https://i.imgur.com/yourimage.png' },
+      { id: 'ep-img-cap', placeholder: 'Caption (optional)', style: 'max-width:180px' },
+    ],
+    '+ Add Image',
+    () => {
+      const url = document.getElementById('ep-img-url').value.trim();
+      const cap = document.getElementById('ep-img-cap').value.trim();
+      if (!url) { alert('Please enter an image URL'); return; }
+      PORTFOLIO[key].images.push({ url, caption: cap });
+      saveData(); renderModalBody(key);
+    }
+  ));
+
+  // Video adder
+  panel.appendChild(makeAdder(
+    'Add YouTube Video URL',
+    [
+      { id: 'ep-vid-url', placeholder: 'https://www.youtube.com/watch?v=...' },
+      { id: 'ep-vid-ttl', placeholder: 'Video title', style: 'max-width:180px' },
+    ],
+    '+ Add Video',
+    () => {
+      const url = document.getElementById('ep-vid-url').value.trim();
+      const title = document.getElementById('ep-vid-ttl').value.trim();
+      if (!url) { alert('Please enter a video URL'); return; }
+      PORTFOLIO[key].videos.push({ url, title });
+      saveData(); renderModalBody(key);
+    }
+  ));
+
+  // Link adder
+  panel.appendChild(makeAdder(
+    'Add Link / Social',
+    [
+      { id: 'ep-lnk-url', placeholder: 'https://...' },
+      { id: 'ep-lnk-lbl', placeholder: 'Label (e.g. Roblox Group)', style: 'max-width:180px' },
+      { id: 'ep-lnk-ico', placeholder: 'Emoji icon 🔗', style: 'max-width:90px' },
+    ],
+    '+ Add Link',
+    () => {
+      const url   = document.getElementById('ep-lnk-url').value.trim();
+      const label = document.getElementById('ep-lnk-lbl').value.trim();
+      const icon  = document.getElementById('ep-lnk-ico').value.trim() || '🔗';
+      if (!url || !label) { alert('Please enter both a URL and a label'); return; }
+      PORTFOLIO[key].links.push({ url, label, icon });
+      saveData(); renderModalBody(key);
+    }
+  ));
+
+  const savedNotice = document.createElement('div');
+  savedNotice.id = 'edit-saved';
+  savedNotice.className = 'edit-saved-notice';
+  savedNotice.textContent = '✓ Saved!';
+  panel.appendChild(savedNotice);
+
+  body.appendChild(panel);
+}
+
+/* ─── DOM helper: section wrapper ─── */
+function makeSection(title) {
+  const sec = document.createElement('div');
+  sec.className = 'modal-section';
+  const t = document.createElement('div');
+  t.className = 'modal-section-title';
+  t.textContent = title;
+  sec.appendChild(t);
+  return sec;
+}
+
+/* ─── DOM helper: empty state ─── */
+function makeEmpty(icon, text) {
+  const el = document.createElement('div');
+  el.className = 'modal-empty';
+  el.innerHTML = `<div class="empty-icon">${icon}</div>${text}`;
+  return el;
+}
+
+/* ─── DOM helper: delete button ─── */
+function makeDeleteBtn(onClick) {
+  const btn = document.createElement('button');
+  btn.className = 'item-delete-btn';
+  btn.textContent = '✕ Delete';
+  btn.addEventListener('click', onClick);
+  return btn;
+}
+
+/* ─── DOM helper: add-item row ─── */
+function makeAdder(title, fields, btnLabel, onAdd) {
+  const wrap = document.createElement('div');
+  wrap.style.marginBottom = '20px';
+
+  const t = document.createElement('div');
+  t.className = 'modal-section-title';
+  t.style.fontSize = '0.58rem';
+  t.textContent = title;
+  wrap.appendChild(t);
+
+  const row = document.createElement('div');
+  row.className = 'edit-row';
+
+  fields.forEach(f => {
+    const inp = document.createElement('input');
+    inp.className = 'edit-input';
+    inp.id = f.id;
+    inp.placeholder = f.placeholder;
+    if (f.style) inp.style.cssText = f.style;
+    // Allow pressing Enter to add
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') onAdd(); });
+    row.appendChild(inp);
+  });
+
+  const btn = document.createElement('button');
+  btn.className = 'edit-btn edit-btn-add';
+  btn.textContent = btnLabel;
+  btn.addEventListener('click', onAdd);
+  row.appendChild(btn);
+
+  wrap.appendChild(row);
+  return wrap;
+}
+
+/* ─── deleteItem ─── */
+function deleteItem(key, type, idx) {
+  if (!confirm('Remove this item?')) return;
+  PORTFOLIO[key][type].splice(idx, 1);
+  saveData();
+  renderModalBody(key);
+}
+
+/* ═════════════════════════════
+   LIGHTBOX
+   ═════════════════════════════ */
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+document.getElementById('lightbox-close').onclick = () => {
+  document.getElementById('lightbox').classList.remove('open');
+};
+document.getElementById('lightbox').addEventListener('click', e => {
+  if (e.target === document.getElementById('lightbox'))
+    document.getElementById('lightbox').classList.remove('open');
+});
+
+/* ═════════════════════════════
+   EDIT MODE
+   ═════════════════════════════ */
+function toggleEditMode() {
+  document.body.classList.toggle('edit-mode');
+  const btn = document.getElementById('edit-toggle');
+  btn.innerHTML = document.body.classList.contains('edit-mode')
+    ? '<span class="dot"></span> Editing...'
+    : '<span class="dot"></span> Edit Mode';
+  // Re-render modal if open
+  if (currentKey) renderModalBody(currentKey);
+}
+
+/* ═════════════════════════════
+   CONTACT FORM
+   ═════════════════════════════ */
+document.getElementById('contact-form').addEventListener('submit', e => {
+  e.preventDefault();
+  document.getElementById('form-success').style.display = 'block';
+  e.target.reset();
+  setTimeout(() => {
+    document.getElementById('form-success').style.display = 'none';
+  }, 5000);
+});
+
+/* ═════════════════════════════
+   APPLY LOGO from data
+   ═════════════════════════════ */
+// Replace placeholder with the real logo if you paste a URL
+// For now, use the uploaded logo image directly via URL:
+// applyLogo("YOUR_LOGO_URL_HERE");
+</script>
+</body>
+</html>
